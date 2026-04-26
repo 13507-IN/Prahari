@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-swiss-bg: #FFFFFF;
+  --color-swiss-fg: #000000;
+  --color-swiss-muted: #F2F2F2;
+  --color-swiss-accent: #FF3000;
+  --color-swiss-border: #000000;
+  
+  --font-inter: "Inter", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-swiss-border;
+  }
+  body {
+    @apply bg-swiss-bg text-swiss-fg font-inter antialiased;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.015'/%3E%3C/svg%3E");
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-black uppercase tracking-tighter;
+  }
+}
+
+@layer utilities {
+  .swiss-grid-pattern {
+    background-image: linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .swiss-dots {
+    background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+  
+  .swiss-diagonal {
+    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0, rgba(0,0,0,0.02) 1px, transparent 0, transparent 10px);
+  }
+}
