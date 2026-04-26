@@ -5,38 +5,40 @@ import { useEffect, useRef, useState } from "react";
 const steps = [
   {
     number: "I",
-    title: "Connect your tools",
-    description: "Integrate with your existing stack in minutes. We support 200+ data sources out of the box.",
-    code: `import { optimus } from '@optimus/core'
+    title: "Report",
+    description: "Submit issues with location, category, and urgency. Our platform ensures your report reaches the right stakeholders instantly.",
+    code: `import { sync } from '@community/sync'
 
-optimus.connect({
-  source: 'your-database',
-  sync: true
+sync.report({
+  issue: 'Broken water main',
+  location: 'Sector 45',
+  urgency: 'HIGH',
+  evidence: 'photo.jpg'
 })`,
   },
   {
     number: "II",
-    title: "Build your workflow",
-    description: "Design powerful automations with our visual builder or write code directly.",
-    code: `optimus.workflow('process', {
-  trigger: 'event',
-  actions: [
-    'validate',
-    'transform', 
-    'deliver'
-  ]
+    title: "Coordinate",
+    description: "Authorities and volunteers take action based on priority. The platform manages tasks, dispatching, and communication.",
+    code: `sync.coordinate({
+  dispatch: 'NGO-Alpha',
+  priority: 1,
+  timeline: '24h',
+  notify: ['Council', 'Volunteers']
 })`,
   },
   {
     number: "III",
-    title: "Ship to production",
-    description: "Deploy globally with zero configuration. Your app goes live in under 30 seconds.",
-    code: `optimus.deploy({
-  target: 'production',
-  regions: 'auto'
+    title: "Verify",
+    description: "Community validates resolution to ensure accountability. Resolutions are only closed after verified feedback from citizens.",
+    code: `sync.verify({
+  resolutionId: 'AC-482',
+  status: 'RESOLVED',
+  proof: 'verified_outcome.jpg',
+  communityVote: 0.98
 })
 
-// Deployed to 12 regions`,
+// Issue closed successfully`,
   },
 ];
 
@@ -86,18 +88,18 @@ export function HowItWorksSection() {
       <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
         {/* Header */}
         <div className="mb-16 lg:mb-24">
-          <span className="inline-flex items-center gap-3 text-sm font-mono text-background/50 mb-6">
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-background/50 mb-6 uppercase tracking-widest">
             <span className="w-8 h-px bg-background/30" />
             Process
           </span>
           <h2
-            className={`text-4xl lg:text-6xl font-display tracking-tight transition-all duration-700 ${
+            className={`text-4xl lg:text-7xl font-display tracking-tight transition-all duration-700 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
             Three steps.
             <br />
-            <span className="text-background/50">Infinite possibilities.</span>
+            <span className="text-background/50">Continuous impact.</span>
           </h2>
         </div>
 

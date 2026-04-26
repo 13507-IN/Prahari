@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import { ArrowUpRight, AlertCircle, CheckCircle2, Clock, Users } from "lucide-react";
+import { ArrowUpRight, AlertCircle, CheckCircle2, Clock, Users, Globe } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
+import MapContainer from "@/components/map/MapContainer";
+import { TopCountries, RegionCount } from "@/components/map/StatsDisplay";
 
 const stats = [
   { label: "01. TOTAL REPORTS", value: "1,248", change: "+12%", icon: AlertCircle, color: "bg-swiss-fg" },
@@ -116,6 +118,31 @@ export default function DashboardPage() {
             </h3>
             <ArrowUpRight className="w-8 h-8 self-end group-hover:text-swiss-bg" />
           </button>
+        </div>
+      </div>
+
+      {/* Live Operations Map Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 border-4 border-swiss-fg">
+        <div className="lg:col-span-8 border-b-4 lg:border-b-0 lg:border-r-4 border-swiss-fg bg-swiss-muted swiss-grid-pattern overflow-hidden min-h-[500px] relative">
+          <div className="p-4 border-b-4 border-swiss-fg bg-swiss-fg text-swiss-bg text-[10px] font-black tracking-widest uppercase flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              <span>LIVE OPERATIONS GRID</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-swiss-red animate-pulse" />
+              <span className="text-swiss-red">UPLINK ACTIVE</span>
+            </div>
+          </div>
+          <div className="p-4 md:p-8">
+            <MapContainer />
+          </div>
+          <div className="absolute bottom-6 left-6">
+            <RegionCount />
+          </div>
+        </div>
+        <div className="lg:col-span-4 bg-swiss-bg">
+          <TopCountries />
         </div>
       </div>
 

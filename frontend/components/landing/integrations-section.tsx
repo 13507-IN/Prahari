@@ -3,18 +3,18 @@
 import { useEffect, useState, useRef } from "react";
 
 const integrations = [
-  { name: "GitHub", category: "Version Control" },
-  { name: "Slack", category: "Communication" },
-  { name: "Stripe", category: "Payments" },
-  { name: "PostgreSQL", category: "Database" },
-  { name: "Redis", category: "Cache" },
-  { name: "AWS", category: "Cloud" },
+  { name: "Mapbox", category: "Geospatial" },
+  { name: "Clerk", category: "Auth" },
+  { name: "AWS", category: "Storage" },
+  { name: "Twilio", category: "Alerts" },
   { name: "MongoDB", category: "Database" },
-  { name: "Vercel", category: "Hosting" },
-  { name: "Figma", category: "Design" },
-  { name: "Linear", category: "Project Management" },
-  { name: "Notion", category: "Documentation" },
-  { name: "OpenAI", category: "AI/ML" },
+  { name: "PostHog", category: "Analytics" },
+  { name: "Stripe", category: "Funding" },
+  { name: "Google Maps", category: "Location" },
+  { name: "Vercel", category: "Deployment" },
+  { name: "SendGrid", category: "Email" },
+  { name: "Cloudinary", category: "Media" },
+  { name: "OpenAI", category: "Classification" },
 ];
 
 export function IntegrationsSection() {
@@ -34,7 +34,7 @@ export function IntegrationsSection() {
   }, []);
 
   return (
-    <section id="integrations" ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden">
+    <section id="integrations" ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden bg-swiss-bg">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         {/* Header */}
         <div
@@ -42,18 +42,18 @@ export function IntegrationsSection() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6 uppercase tracking-widest">
             <span className="w-8 h-px bg-foreground/30" />
             Integrations
             <span className="w-8 h-px bg-foreground/30" />
           </span>
-          <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-6">
-            Works with everything
+          <h2 className="text-4xl lg:text-7xl font-display tracking-tight mb-6">
+            Works with
             <br />
-            you already use.
+            your ecosystem.
           </h2>
-          <p className="text-xl text-muted-foreground">
-            200+ pre-built integrations. Connect your entire stack in minutes.
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Easily integrate mapping, storage, authentication, and analytics tools to build a complete community management system.
           </p>
         </div>
 

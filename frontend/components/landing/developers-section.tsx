@@ -6,51 +6,46 @@ import { Copy, Check } from "lucide-react";
 const codeExamples = [
   {
     label: "Install",
-    code: `npm install @optimus/sdk
+    code: `npm install @community/sync-sdk
 
 # or
-yarn add @optimus/sdk
-pnpm add @optimus/sdk`,
+yarn add @community/sync-sdk`,
   },
   {
     label: "Initialize",
-    code: `import { Optimus } from '@optimus/sdk'
+    code: `import { CommunitySync } from '@community/sync'
 
-const optimus = new Optimus({
-  apiKey: process.env.OPTIMUS_KEY
+const sync = new CommunitySync({
+  apiKey: process.env.SYNC_KEY,
+  region: 'urban-zone-alpha'
 })`,
   },
   {
-    label: "Deploy",
-    code: `const app = await optimus.deploy({
-  name: 'my-app',
-  region: 'auto',
-  scaling: {
-    min: 1,
-    max: 100
-  }
-})
-
-console.log('Live at:', app.url)`,
+    label: "Listen",
+    code: `sync.on('issue:reported', (issue) => {
+  console.log('New issue at:', issue.location)
+  // Auto-dispatch based on priority
+  dispatchWorker(issue)
+})`,
   },
 ];
 
 const features = [
   { 
-    title: "TypeScript native", 
-    description: "Full type safety with auto-generated types."
+    title: "Real-time Webhooks", 
+    description: "Receive instant notifications for community reports."
   },
   { 
-    title: "Zero config", 
-    description: "Sensible defaults that just work."
+    title: "Geo-fenced Alerts", 
+    description: "Automated routing based on precise location data."
   },
   { 
-    title: "Edge-ready", 
-    description: "Runs anywhere: Node, Deno, Bun, browsers."
+    title: "Open API", 
+    description: "REST and GraphQL endpoints for all resolution data."
   },
   { 
-    title: "12KB gzipped", 
-    description: "Lightweight with zero dependencies."
+    title: "Verified Proofs", 
+    description: "Cryptographically secure resolution validation."
   },
 ];
 
@@ -107,7 +102,7 @@ export function DevelopersSection() {
   }, []);
 
   return (
-    <section id="developers" ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden">
+    <section id="developers" ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden bg-swiss-bg">
       <style dangerouslySetInnerHTML={{ __html: codeAnimationStyles }} />
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
@@ -117,18 +112,17 @@ export function DevelopersSection() {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
-            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6 uppercase tracking-widest">
               <span className="w-8 h-px bg-foreground/30" />
               For developers
             </span>
-            <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-8">
-              Built by devs.
+            <h2 className="text-4xl lg:text-7xl font-display tracking-tight mb-8">
+              Built for
               <br />
-              <span className="text-muted-foreground">For devs.</span>
+              scalable solutions.
             </h2>
             <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
-              A thoughtfully designed SDK that gets out of your way. 
-              Ship faster with intuitive APIs and exceptional documentation.
+              Flexible architecture designed for real-time data processing, seamless integrations, and rapid deployment.
             </p>
             
             {/* Features */}

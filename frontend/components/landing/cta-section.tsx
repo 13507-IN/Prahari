@@ -51,37 +51,32 @@ export function CtaSection() {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
               {/* Left content */}
               <div className="flex-1">
-                <h2 className="text-4xl lg:text-7xl font-display tracking-tight mb-8 leading-[0.95]">
-                  Ready to build
+                <h2 className="text-4xl lg:text-8xl font-display tracking-tight mb-8 leading-[0.95]">
+                  Ready to create
                   <br />
-                  something great?
+                  real impact?
                 </h2>
 
                 <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-xl">
-                  Join thousands of teams shipping faster with Optimus. 
-                  Start free, scale infinitely.
+                  Join the network improving communities through collaboration and technology.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <Button
                     size="lg"
-                    className="bg-foreground hover:bg-foreground/90 text-background px-8 h-14 text-base rounded-full group"
+                    className="bg-swiss-red hover:bg-swiss-red/90 text-swiss-bg px-10 h-16 text-base rounded-0 font-black uppercase tracking-widest group"
                   >
-                    Start building free
+                    Get Started
                     <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-14 px-8 text-base rounded-full border-foreground/20 hover:bg-foreground/5"
+                    className="h-16 px-10 text-base rounded-0 border-foreground/20 hover:bg-foreground/5 font-black uppercase tracking-widest"
                   >
-                    Talk to sales
+                    Explore Platform
                   </Button>
                 </div>
-
-                <p className="text-sm text-muted-foreground mt-8 font-mono">
-                  No credit card required
-                </p>
               </div>
 
               {/* Right animation */}

@@ -46,28 +46,28 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
 
 const metrics = [
   { 
-    value: 2847392, 
+    value: 1248, 
     suffix: "", 
     prefix: "",
-    label: "API requests today",
+    label: "Active reports today",
   },
   { 
-    value: 99, 
-    suffix: ".99%", 
+    value: 94, 
+    suffix: "%", 
     prefix: "",
-    label: "Uptime this quarter",
+    label: "Resolution efficiency",
   },
   { 
-    value: 23, 
-    suffix: "ms", 
+    value: 24, 
+    suffix: "h", 
     prefix: "",
     label: "Average response time",
   },
   { 
-    value: 184, 
+    value: 19, 
     suffix: "", 
     prefix: "",
-    label: "Countries served",
+    label: "Regions covered",
   },
 ];
 
@@ -94,23 +94,23 @@ export function MetricsSection() {
   }, []);
 
   return (
-    <section id="studio" ref={sectionRef} className="relative py-24 lg:py-32 border-y border-foreground/10">
+    <section id="studio" ref={sectionRef} className="relative py-24 lg:py-32 border-y-4 border-swiss-fg bg-swiss-muted">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-16 lg:mb-24">
           <div>
-            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6 uppercase tracking-widest">
               <span className="w-8 h-px bg-foreground/30" />
               Live metrics
             </span>
             <h2
-              className={`text-4xl lg:text-6xl font-display tracking-tight transition-all duration-700 ${
+              className={`text-4xl lg:text-7xl font-display tracking-tight transition-all duration-700 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
               Performance you
               <br />
-              can measure.
+              can trust.
             </h2>
           </div>
           <div className="flex items-center gap-4 font-mono text-sm text-muted-foreground">

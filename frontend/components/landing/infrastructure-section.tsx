@@ -3,12 +3,12 @@
 import { useEffect, useState, useRef } from "react";
 
 const locations = [
-  { city: "San Francisco", region: "US West", latency: "12ms" },
-  { city: "New York", region: "US East", latency: "18ms" },
-  { city: "London", region: "Europe", latency: "24ms" },
-  { city: "Tokyo", region: "Asia Pacific", latency: "32ms" },
-  { city: "Sydney", region: "Oceania", latency: "45ms" },
-  { city: "Sao Paulo", region: "South America", latency: "38ms" },
+  { city: "Urban Zone A", region: "High Density", latency: "Verified" },
+  { city: "Rural Cluster B", region: "Active Monitoring", latency: "Connected" },
+  { city: "Semi-Urban C", region: "Field Data", latency: "Verified" },
+  { city: "Industrial Zone D", region: "NGO Liaison", latency: "Connected" },
+  { city: "Coastal Region E", region: "Emergency Ops", latency: "Verified" },
+  { city: "Highland Zone F", region: "Volunteer Ops", latency: "Connected" },
 ];
 
 export function InfrastructureSection() {
@@ -36,7 +36,7 @@ export function InfrastructureSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden">
+    <section ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden bg-swiss-muted border-y-4 border-swiss-fg">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Left: Content */}
@@ -45,33 +45,28 @@ export function InfrastructureSection() {
               isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
             }`}
           >
-            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6 uppercase tracking-widest">
               <span className="w-8 h-px bg-foreground/30" />
               Infrastructure
             </span>
-            <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-8">
-              Global by
+            <h2 className="text-4xl lg:text-7xl font-display tracking-tight mb-8">
+              Built for
               <br />
-              default.
+              real-world impact.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mb-12">
-              Deploy once, run everywhere. Our edge network spans 17 data centers 
-              across 6 continents, delivering sub-50ms latency to 99% of the world.
+              Designed to operate across regions, enabling seamless coordination between multiple stakeholders with minimal delay and maximum visibility.
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 gap-8">
               <div>
-                <div className="text-4xl lg:text-5xl font-display mb-2">17</div>
-                <div className="text-sm text-muted-foreground">Data centers</div>
+                <div className="text-4xl lg:text-6xl font-display mb-2">99.9%</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Uptime Guarantee</div>
               </div>
               <div>
-                <div className="text-4xl lg:text-5xl font-display mb-2">99.99%</div>
-                <div className="text-sm text-muted-foreground">Uptime SLA</div>
-              </div>
-              <div>
-                <div className="text-4xl lg:text-5xl font-display mb-2">&lt;50ms</div>
-                <div className="text-sm text-muted-foreground">Global latency</div>
+                <div className="text-4xl lg:text-6xl font-display mb-2">&lt;1s</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Response Dispatch</div>
               </div>
             </div>
           </div>
@@ -82,37 +77,37 @@ export function InfrastructureSection() {
               isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
             }`}
           >
-            <div className="border border-foreground/10">
+            <div className="border-4 border-swiss-fg bg-swiss-bg shadow-[16px_16px_0_0_rgba(0,0,0,0.05)]">
               {/* Header */}
-              <div className="px-6 py-4 border-b border-foreground/10 flex items-center justify-between">
-                <span className="text-sm font-mono text-muted-foreground">Edge Network</span>
-                <span className="flex items-center gap-2 text-xs font-mono text-green-600">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  All operational
+              <div className="px-6 py-4 border-b-4 border-swiss-fg flex items-center justify-between bg-swiss-fg text-swiss-bg">
+                <span className="text-sm font-mono uppercase tracking-widest font-black">Regional Nodes</span>
+                <span className="flex items-center gap-2 text-xs font-mono font-black text-swiss-red">
+                  <div className="w-2 h-2 rounded-0 bg-swiss-red animate-pulse" />
+                  SYSTEM ACTIVE
                 </span>
               </div>
 
               {/* Locations */}
-              <div>
+              <div className="divide-y-2 divide-swiss-fg/10">
                 {locations.map((location, index) => (
                   <div
                     key={location.city}
-                    className={`px-6 py-5 border-b border-foreground/5 last:border-b-0 flex items-center justify-between transition-all duration-300 ${
-                      activeLocation === index ? "bg-foreground/[0.02]" : ""
+                    className={`px-6 py-5 flex items-center justify-between transition-all duration-300 ${
+                      activeLocation === index ? "bg-swiss-red/5" : ""
                     }`}
                   >
                     <div className="flex items-center gap-4">
                       <span 
-                        className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-                          activeLocation === index ? "bg-foreground" : "bg-foreground/20"
+                        className={`w-2 h-2 transition-colors duration-300 ${
+                          activeLocation === index ? "bg-swiss-red" : "bg-swiss-fg/20"
                         }`}
                       />
                       <div>
-                        <div className="font-medium">{location.city}</div>
-                        <div className="text-sm text-muted-foreground">{location.region}</div>
+                        <div className="font-black text-xs uppercase tracking-widest">{location.city}</div>
+                        <div className="text-[10px] text-muted-foreground uppercase font-bold">{location.region}</div>
                       </div>
                     </div>
-                    <span className="font-mono text-sm text-muted-foreground">{location.latency}</span>
+                    <span className="font-mono text-[10px] font-black text-swiss-red uppercase">{location.latency}</span>
                   </div>
                 ))}
               </div>

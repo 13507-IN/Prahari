@@ -6,27 +6,27 @@ import { Shield, Lock, Eye, FileCheck } from "lucide-react";
 const securityFeatures = [
   {
     icon: Shield,
-    title: "SOC 2 Type II",
-    description: "Independently audited security controls with continuous monitoring.",
+    title: "Verified Actions",
+    description: "Every resolution is backed by multi-party verification and visual proof.",
   },
   {
     icon: Lock,
-    title: "End-to-end encryption",
-    description: "AES-256 encryption for data at rest and TLS 1.3 in transit.",
+    title: "Role-Based Access",
+    description: "Granular controls for citizens, NGOs, and government authorities.",
   },
   {
     icon: Eye,
-    title: "Zero-trust architecture",
-    description: "Every request is authenticated and authorized. No exceptions.",
+    title: "Real-Time Auditing",
+    description: "Every action is logged on an immutable ledger for full transparency.",
   },
   {
     icon: FileCheck,
-    title: "GDPR & HIPAA",
-    description: "Full compliance with data protection and healthcare regulations.",
+    title: "Data Privacy",
+    description: "Secure, encrypted handling of sensitive community reporting data.",
   },
 ];
 
-const certifications = ["SOC 2", "ISO 27001", "HIPAA", "GDPR", "CCPA"];
+const certifications = ["AES-256", "TLS 1.3", "RBAC", "AUDIT-LOG"];
 
 export function SecuritySection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -45,7 +45,7 @@ export function SecuritySection() {
   }, []);
 
   return (
-    <section id="security" ref={sectionRef} className="relative py-24 lg:py-32 bg-foreground/[0.02] overflow-hidden">
+    <section id="security" ref={sectionRef} className="relative py-24 lg:py-32 bg-swiss-muted overflow-hidden border-y-4 border-swiss-fg">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
           {/* Left: Content */}
@@ -54,18 +54,17 @@ export function SecuritySection() {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
-            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6 uppercase tracking-widest">
               <span className="w-8 h-px bg-foreground/30" />
               Security
             </span>
-            <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-8">
-              Trust is
+            <h2 className="text-4xl lg:text-7xl font-display tracking-tight mb-8">
+              Transparency
               <br />
-              non-negotiable.
+              with trust.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mb-12">
-              Enterprise-grade security isn&apos;t optional. It&apos;s built into every layer 
-              of our platform, from infrastructure to application.
+              Secure data handling, role-based access control, and verified actions ensure reliability across all stakeholders.
             </p>
 
             {/* Certifications */}
