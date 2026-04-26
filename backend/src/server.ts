@@ -8,7 +8,7 @@ async function main() {
     initConfig();
     
     console.log('Initializing database...');
-    initDatabase();
+    await initDatabase();
     console.log('Database initialized');
 
     const PORT = process.env.PORT || 3000;

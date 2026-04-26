@@ -2,9 +2,15 @@
 
 import React, { useState } from "react";
 import { Upload, MapPin, AlertTriangle, Send } from "lucide-react";
+import DynamicMapPicker from "@/components/map/DynamicMapPicker";
 
 export default function ReportIssuePage() {
   const [step, setStep] = useState(1);
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    setLocation({ lat, lng });
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -77,13 +83,15 @@ export default function ReportIssuePage() {
                   Location Coordinates
                 </label>
                 <div className="h-80 bg-swiss-muted border-4 border-swiss-fg swiss-grid-pattern flex items-center justify-center relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-swiss-fg/5 swiss-diagonal" />
-                  <div className="relative z-10 flex flex-col items-center gap-4">
-                    <button className="px-8 py-4 bg-swiss-fg text-swiss-bg text-xs font-black tracking-widest uppercase hover:bg-swiss-red transition-colors">
-                      PICK FROM MAP
-                    </button>
-                    <p className="text-[10px] font-bold text-swiss-fg/40 uppercase">OR SEARCH ADDRESS BELOW</p>
-                  </div>
+                  <DynamicMapPicker 
+                    onLocationSelect={handleLocationSelect}
+                    initialLocation={location || undefined}
+                  />
+                  {!location && (
+                    <div className="absolute z-10 pointer-events-none flex flex-col items-center gap-4 bg-swiss-bg/80 p-4 border-4 border-swiss-fg">
+                      <p className="text-[10px] font-bold text-swiss-fg uppercase">CLICK ON MAP TO SET PIN</p>
+                    </div>
+                  )}
                 </div>
                 <input 
                   type="text" 
