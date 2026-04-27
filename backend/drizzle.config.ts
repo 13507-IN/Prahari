@@ -1,14 +1,25 @@
 import { defineConfig } from 'drizzle-kit';
-import { getConfig, initConfig } from './src/config/index.js';
+import * as dotenv from 'dotenv';
 
-initConfig();
-
+dotenv.config();
 
 export default defineConfig({
   schema: './src/db/schema/index.ts',
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: getConfig().DATABASE_URL,
+    url: process.env.DATABASE_URL!,
   },
+  schemaFilter: ['public'],
+  // Explicitly list tables to avoid introspecting PostGIS system tables
+  tablesFilter: [
+    "reports", 
+    "users", 
+    "notifications", 
+    "refresh_tokens", 
+    "tasks", 
+    "verifications", 
+    "government_actions", 
+    "audit_logs"
+  ],
 });

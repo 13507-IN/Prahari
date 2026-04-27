@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, MapPin, AlertTriangle, Send } from "lucide-react";
-import LocationPicker from "@/components/map/LocationPicker";
+import DynamicMapPicker from "@/components/map/DynamicMapPicker";
+import { createReport } from "@/lib/api";
 
 interface LocationData {
   lat: number;
@@ -17,13 +18,10 @@ interface FormData {
   location: LocationData | null;
   images: File[];
 }
-import { createReport } from "@/lib/api";
 
 export default function ReportIssuePage() {
   const [step, setStep] = useState(1);
   const router = useRouter();
-  const [category, setCategory] = useState<"infrastructure" | "health" | "safety" | "other">("infrastructure");
-  const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
   const [title, setTitle] = useState("");
   const [urgency, setUrgency] = useState<"low" | "medium" | "high">("medium");
@@ -31,6 +29,12 @@ export default function ReportIssuePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    category: "",
+    description: "",
+    location: null,
+    images: [],
+  });
 
   const categoryOptions = [
     { label: "INFRA", value: "infrastructure" },
@@ -38,6 +42,17 @@ export default function ReportIssuePage() {
     { label: "SAFETY", value: "safety" },
     { label: "OTHER", value: "other" },
   ] as const;
+
+  const updateFormData = (data: Partial<FormData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+  };
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    updateFormData({ location: { lat, lng } });
+  };
+
+  const canProceedToStep2 = formData.category && formData.description.length >= 10;
+  const canProceedToStep3 = formData.location !== null;
 
   async function handleFinalSubmit() {
     setError(null);
@@ -67,23 +82,6 @@ export default function ReportIssuePage() {
       setIsSubmitting(false);
     }
   }
-  const [formData, setFormData] = useState<FormData>({
-    category: "",
-    description: "",
-    location: null,
-    images: [],
-  });
-
-  const updateFormData = (data: Partial<FormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  };
-
-  const handleLocationChange = (location: LocationData) => {
-    updateFormData({ location });
-  };
-
-  const canProceedToStep2 = formData.category && formData.description.length >= 10;
-  const canProceedToStep3 = formData.location !== null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-12 md:pb-0">
@@ -176,15 +174,16 @@ export default function ReportIssuePage() {
                   <MapPin className="w-4 h-4 text-swiss-red" />
                   Location Coordinates
                 </label>
-                <LocationPicker onLocationChange={handleLocationChange} />
-                <div className="h-64 md:h-80 bg-swiss-muted border-4 border-swiss-fg swiss-grid-pattern flex items-center justify-center relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-swiss-fg/5 swiss-diagonal" />
-                  <div className="relative z-10 flex flex-col items-center gap-4 text-center px-4">
-                    <button className="px-6 py-4 md:px-8 md:py-4 bg-swiss-fg text-swiss-bg text-xs font-black tracking-widest uppercase hover:bg-swiss-red transition-colors">
-                      PICK FROM MAP
-                    </button>
-                    <p className="text-[8px] md:text-[10px] font-bold text-swiss-fg/40 uppercase tracking-widest">OR SEARCH ADDRESS BELOW</p>
-                  </div>
+                <div className="h-80 bg-swiss-muted border-4 border-swiss-fg swiss-grid-pattern flex items-center justify-center relative overflow-hidden group">
+                  <DynamicMapPicker 
+                    onLocationSelect={handleLocationSelect}
+                    initialLocation={formData.location || undefined}
+                  />
+                  {!formData.location && (
+                    <div className="absolute z-10 pointer-events-none flex flex-col items-center gap-4 bg-swiss-bg/80 p-4 border-4 border-swiss-fg">
+                      <p className="text-[10px] font-bold text-swiss-fg uppercase">CLICK ON MAP TO SET PIN</p>
+                    </div>
+                  )}
                 </div>
                 <input 
                   type="text" 

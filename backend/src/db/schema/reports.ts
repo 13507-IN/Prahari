@@ -1,5 +1,6 @@
 import { pgTable, uuid, varchar, text, timestamp, jsonb, pgEnum, boolean, real } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
+import { geography } from './custom_types.js';
 
 export const urgencyEnum = pgEnum('urgency', ['low', 'medium', 'high']);
 
@@ -30,7 +31,7 @@ export const reports = pgTable('reports', {
   category: reportCategoryEnum('category').notNull(),
   urgency: urgencyEnum('urgency').notNull().default('medium'),
   status: reportStatusEnum('status').notNull().default('pending'),
-  location: varchar('location', { length: 100 }).notNull(),
+  location: geography('location'),
   address: text('address'),
   latitude: real('latitude'),
   longitude: real('longitude'),

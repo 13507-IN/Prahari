@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, text, timestamp, boolean, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { geography } from './custom_types.js';
 
 export const userRoleEnum = pgEnum('user_role', ['ngo', 'volunteer', 'govt', 'admin']);
 
@@ -25,7 +26,7 @@ export const users = pgTable('users', {
 
   skills: jsonb('skills').$type<string[]>().default([]),
 
-  location: varchar('location', { length: 100 }),
+  location: geography('location'),
   locationData: jsonb('location_data').$type<LocationData>(),
 
   phone: varchar('phone', { length: 20 }),

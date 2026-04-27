@@ -1,8 +1,10 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, or } from 'drizzle-orm';
 import { getDb } from '../../db/index.js';
-import { reports } from '../../db/schema/index.js';
+import { reports, users } from '../../db/schema/index.js';
 import type { Report } from '../../db/schema/reports.js';
 import type { CreateReportInput, UpdateReportInput, ReportFilters } from './schemas.js';
+import { analyzeIssueWithML } from '../../utils/ml.js';
+import { createNotification } from '../notifications/service.js';
 
 function calculateDistance(point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number {
   const R = 6371;
@@ -19,19 +21,51 @@ function calculateDistance(point1: { lat: number; lng: number }, point2: { lat: 
 export async function createReport(input: CreateReportInput, userId: string): Promise<Report> {
   const db = getDb();
   
+  // 1. Analyze issue with ML
+  const mlAnalysis = await analyzeIssueWithML(input.title, input.description);
+
+  // Convert lat,lng to PostGIS POINT
+  let locationPoint: any = null;
+  if (input.location) {
+    const [lat, lng] = input.location.split(',').map(Number);
+    locationPoint = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
+  }
+  
   const [report] = await db.insert(reports)
     .values({
       title: input.title,
       description: input.description,
-      category: input.category,
-      urgency: input.urgency || 'medium',
-      location: input.location,
+      category: input.category || mlAnalysis.category,
+      urgency: input.urgency || mlAnalysis.urgency,
+      location: locationPoint || input.location,
       address: input.address || null,
       images: input.images || [],
       createdBy: userId,
       status: 'pending',
     })
     .returning();
+
+  // 2. Notify nearby NGOs and Govt
+  if (locationPoint) {
+    const RADIUS_METERS = 10000; // 10km
+    
+    // Find NGOs and Govt users within 10km
+    const nearbyUsers = await db.select()
+      .from(users)
+      .where(and(
+        or(eq(users.role, 'ngo'), eq(users.role, 'govt')),
+        sql`ST_DWithin(${users.location}, ${locationPoint}, ${RADIUS_METERS})`
+      ));
+
+    // Send notifications asynchronously
+    Promise.all(nearbyUsers.map(u => 
+      createNotification(
+        u.id, 
+        `New ${report.urgency} urgency ${report.category} issue reported nearby.`, 
+        'system'
+      )
+    )).catch(err => console.error('Failed to send nearby notifications:', err));
+  }
 
   return report;
 }
@@ -111,18 +145,15 @@ export async function deleteReport(id: string): Promise<boolean> {
 export async function getNearbyReports(lat: number, lng: number, radiusKm: number = 10): Promise<Report[]> {
   const db = getDb();
   
-  const allReports = await db.select()
-    .from(reports);
+  const radiusMeters = radiusKm * 1000;
+  const point = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
 
-  return allReports.filter(report => {
-    if (!report.location) return false;
-    const [reportLat, reportLng] = report.location.split(',').map(Number);
-    const distance = calculateDistance(
-      { lat, lng },
-      { lat: reportLat, lng: reportLng }
-    );
-    return distance <= radiusKm;
-  });
+  const nearbyReports = await db.select()
+    .from(reports)
+    .where(sql`ST_DWithin(${reports.location}, ${point}, ${radiusMeters})`)
+    .orderBy(desc(reports.createdAt));
+
+  return nearbyReports;
 }
 
 export async function assignReportToVolunteer(reportId: string, volunteerId: string): Promise<Report | null> {
