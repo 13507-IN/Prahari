@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, MapPin, AlertTriangle, Send } from "lucide-react";
+import { Upload, MapPin, AlertTriangle, Send, Users, Building2, Check } from "lucide-react";
 import DynamicMapPicker from "@/components/map/DynamicMapPicker";
-import { createReport } from "@/lib/api";
+import { createReport, getGovtUsers, getNgoUsers } from "@/lib/api";
+import type { CreateReportPayload } from "@/lib/api";
 
 interface LocationData {
   lat: number;
@@ -12,11 +13,19 @@ interface LocationData {
   address?: string;
 }
 
+interface Recipient {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 interface FormData {
   category: "infrastructure" | "health" | "safety" | "other" | "environment" | "education" | "social" | "";
   description: string;
   location: LocationData | null;
   images: File[];
+  uploadedImageUrl: string | null;
 }
 
 export default function ReportIssuePage() {
@@ -25,7 +34,6 @@ export default function ReportIssuePage() {
   const [address, setAddress] = useState("");
   const [title, setTitle] = useState("");
   const [urgency, setUrgency] = useState<"low" | "medium" | "high">("medium");
-  const [imageUrl, setImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +42,51 @@ export default function ReportIssuePage() {
     description: "",
     location: null,
     images: [],
+    uploadedImageUrl: null,
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const updateFormData = (data: Partial<FormData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+  };
+
+  const handleLocationChange = (location: LocationData) => {
+    updateFormData({ location });
+  };
+
+  const canProceedToStep2 = formData.category && formData.description.length >= 10;
+  const canProceedToStep3 = formData.location !== null;
+  
+  const [govtUsers, setGovtUsers] = useState<Recipient[]>([]);
+  const [ngoUsers, setNgoUsers] = useState<Recipient[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [isLoadingRecipients, setIsLoadingRecipients] = useState(false);
+
+  useEffect(() => {
+    async function loadRecipients() {
+      setIsLoadingRecipients(true);
+      try {
+        const govtData = await getGovtUsers();
+        const ngoData = await getNgoUsers();
+        if (govtData?.data) setGovtUsers(govtData.data);
+        if (ngoData?.data) setNgoUsers(ngoData.data);
+      } catch (err) {
+        console.error("Failed to load recipients:", err);
+      } finally {
+        setIsLoadingRecipients(false);
+      }
+    }
+    loadRecipients();
+  }, []);
+
+  const toggleRecipient = (id: string) => {
+    setSelectedRecipients(prev => 
+      prev.includes(id) 
+        ? prev.filter(r => r !== id)
+        : [...prev, id]
+    );
+  };
 
   const categoryOptions = [
     { label: "INFRA", value: "infrastructure" },
@@ -43,31 +95,37 @@ export default function ReportIssuePage() {
     { label: "OTHER", value: "other" },
   ] as const;
 
-  const updateFormData = (data: Partial<FormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  };
-
-  const handleLocationSelect = (lat: number, lng: number) => {
-    updateFormData({ location: { lat, lng } });
-  };
-
-  const canProceedToStep2 = formData.category && formData.description.length >= 10;
-  const canProceedToStep3 = formData.location !== null;
-
   async function handleFinalSubmit() {
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
 
     try {
+      const locationData = formData.location;
+      const locationString = locationData?.address || address || `${locationData?.lat}, ${locationData?.lng}`;
+      
+      const imageUrls: string[] = [];
+      if (formData.images.length > 0) {
+        for (const file of formData.images) {
+          const reader = new FileReader();
+          const dataUrl = await new Promise<string>((resolve) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+          imageUrls.push(dataUrl);
+        }
+      }
+
       await createReport({
         title: title.trim() || `${formData.category.toUpperCase()} issue report`,
         description: formData.description,
-        category: formData.category,
+        category: formData.category as CreateReportPayload["category"],
         urgency,
-        location: address,
-        address,
-        images: imageUrl ? [imageUrl] : undefined,
+        location: locationString,
+        address: locationString,
+        latitude: locationData?.lat,
+        longitude: locationData?.lng,
+        images: imageUrls.length > 0 ? imageUrls : undefined,
       });
 
       setSuccess("Report submitted successfully.");
@@ -82,6 +140,7 @@ export default function ReportIssuePage() {
       setIsSubmitting(false);
     }
   }
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-12 md:pb-0">
@@ -176,7 +235,7 @@ export default function ReportIssuePage() {
                 </label>
                 <div className="h-80 bg-swiss-muted border-4 border-swiss-fg swiss-grid-pattern flex items-center justify-center relative overflow-hidden group">
                   <DynamicMapPicker 
-                    onLocationSelect={handleLocationSelect}
+                    onLocationSelect={(lat, lng) => updateFormData({ location: { lat, lng } })}
                     initialLocation={formData.location || undefined}
                   />
                   {!formData.location && (
@@ -219,25 +278,155 @@ export default function ReportIssuePage() {
             <div className="space-y-8 animate-in fade-in duration-500">
               <div className="space-y-4">
                 <label className="text-[10px] font-black tracking-widest uppercase flex items-center gap-2">
+                  <Users className="w-4 h-4 text-swiss-red" />
+                  Notify Recipients
+                </label>
+                <p className="text-[10px] font-bold text-swiss-fg/60">
+                  Select government bodies and NGOs to notify about this issue
+                </p>
+                
+                {isLoadingRecipients ? (
+                  <div className="p-8 text-center">
+                    <div className="w-8 h-8 border-4 border-swiss-fg/30 border-t-swiss-fg rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : (
+                  <>
+                    {govtUsers.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-swiss-fg/60">
+                          <Building2 className="w-4 h-4" />
+                          Government Bodies ({govtUsers.length})
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {govtUsers.map((user) => (
+                            <button
+                              key={user.id}
+                              type="button"
+                              onClick={() => toggleRecipient(user.id)}
+                              className={`p-4 border-4 text-left transition-colors ${
+                                selectedRecipients.includes(user.id)
+                                  ? "border-swiss-red bg-swiss-red/10"
+                                  : "border-swiss-fg hover:border-swiss-red"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs font-black tracking-widest uppercase">{user.name}</p>
+                                  <p className="text-[10px] text-swiss-fg/60">{user.email}</p>
+                                </div>
+                                {selectedRecipients.includes(user.id) && (
+                                  <div className="w-6 h-6 bg-swiss-red rounded-full flex items-center justify-center">
+                                    <Check className="w-4 h-4 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {ngoUsers.length > 0 && (
+                      <div className="space-y-3 pt-4">
+                        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-swiss-fg/60">
+                          <Users className="w-4 h-4" />
+                          NGOs ({ngoUsers.length})
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {ngoUsers.map((user) => (
+                            <button
+                              key={user.id}
+                              type="button"
+                              onClick={() => toggleRecipient(user.id)}
+                              className={`p-4 border-4 text-left transition-colors ${
+                                selectedRecipients.includes(user.id)
+                                  ? "border-swiss-red bg-swiss-red/10"
+                                  : "border-swiss-fg hover:border-swiss-red"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs font-black tracking-widest uppercase">{user.name}</p>
+                                  <p className="text-[10px] text-swiss-fg/60">{user.email}</p>
+                                </div>
+                                {selectedRecipients.includes(user.id) && (
+                                  <div className="w-6 h-6 bg-swiss-red rounded-full flex items-center justify-center">
+                                    <Check className="w-4 h-4 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {govtUsers.length === 0 && ngoUsers.length === 0 && (
+                      <p className="text-[10px] font-bold text-swiss-fg/40 text-center p-4">
+                        No recipients available
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black tracking-widest uppercase flex items-center gap-2">
                   <Upload className="w-4 h-4 text-swiss-red" />
                   Evidence Upload
                 </label>
-                <div className="border-4 border-dashed border-swiss-fg/40 p-8 md:p-16 flex flex-col items-center gap-6 hover:border-swiss-red hover:bg-swiss-red/5 transition-all group cursor-pointer">
-                  <div className="w-16 h-16 md:w-20 md:h-20 border-4 border-swiss-fg flex items-center justify-center group-hover:border-swiss-red">
-                    <Upload className="w-6 h-6 md:w-8 md:h-8 text-swiss-fg group-hover:text-swiss-red" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs md:text-sm font-black tracking-tighter uppercase mb-2">DRAG AND DROP MEDIA</p>
-                    <p className="text-[8px] md:text-[10px] font-bold text-swiss-fg/40 uppercase">MAX FILE SIZE: 25MB (PNG, JPG, MP4)</p>
-                  </div>
-                </div>
                 <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(event) => setImageUrl(event.target.value)}
-                  placeholder="OPTIONAL CLOUDINARY IMAGE URL..."
-                  className="w-full p-4 md:p-6 border-4 border-swiss-fg bg-swiss-muted focus:outline-none focus:bg-white focus:border-swiss-red font-bold text-sm tracking-tight transition-all"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFormData(prev => ({ ...prev, images: [...prev.images, file] }));
+                    }
+                  }}
                 />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-4 border-dashed border-swiss-fg/40 p-8 md:p-16 flex flex-col items-center gap-6 hover:border-swiss-red hover:bg-swiss-red/5 transition-all group cursor-pointer"
+                >
+                  {formData.images.length > 0 ? (
+                    <div className="flex flex-wrap gap-4 justify-center">
+                      {formData.images.map((file, i) => (
+                        <div key={i} className="relative">
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt={file.name}
+                            className="w-24 h-24 object-cover border-4 border-swiss-fg"
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData(prev => ({
+                                ...prev,
+                                images: prev.images.filter((_, idx) => idx !== i)
+                              }));
+                            }}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-swiss-red text-white rounded-full text-xs font-black"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 md:w-20 md:h-20 border-4 border-swiss-fg flex items-center justify-center group-hover:border-swiss-red">
+                        <Upload className="w-6 h-6 md:w-8 md:h-8 text-swiss-fg group-hover:text-swiss-red" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs md:text-sm font-black tracking-tighter uppercase mb-2">DRAG AND DROP MEDIA</p>
+                        <p className="text-[8px] md:text-[10px] font-bold text-swiss-fg/40 uppercase">MAX FILE SIZE: 25MB (PNG, JPG, MP4)</p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="p-6 md:p-8 border-4 border-swiss-red bg-swiss-red/5">

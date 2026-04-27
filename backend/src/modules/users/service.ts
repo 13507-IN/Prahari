@@ -58,7 +58,6 @@ export async function createOrUpdateClerkUser(input: ProfileSetupInput): Promise
       lastName: input.lastName,
       name: `${input.firstName} ${input.lastName}`,
       email: input.email,
-      password: null, // Clerk handles password
       role: input.role,
       locationData: input.location,
     })
@@ -87,4 +86,12 @@ export async function getUsersByRole(role: string): Promise<User[]> {
   return db.select()
     .from(users)
     .where(eq(users.role, role as 'ngo' | 'volunteer' | 'govt' | 'admin'));
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  const db = getDb();
+  
+  return db.select()
+    .from(users)
+    .where(eq(users.isActive, true));
 }

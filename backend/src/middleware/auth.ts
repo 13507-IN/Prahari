@@ -1,9 +1,13 @@
 import { type Request, type Response, type NextFunction } from 'express';
-import { verifyAccessToken } from '../utils/jwt.js';
+import { createClerkClient } from '@clerk/backend';
 import type { AuthenticatedRequest } from '../types/index.js';
 import { getDb } from '../db/index.js';
 import { users } from '../db/schema/index.js';
 import { eq } from 'drizzle-orm';
+
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
 
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
@@ -17,26 +21,35 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     }
 
     const token = authHeader.substring(7);
-    const payload = verifyAccessToken(token);
 
-    if (!payload) {
+    // Verify Clerk JWT token
+    let clerkUserId: string;
+    try {
+      const verifiedToken = await clerkClient.verifyToken(token);
+      clerkUserId = verifiedToken.sub;
+    } catch {
       return res.status(401).json({
         success: false,
         error: 'Invalid or expired token',
       });
     }
 
+    // Look up user by clerkId in our database
     const db = getDb();
     const userResult = await db.select()
       .from(users)
-      .where(eq(users.id, payload.userId))
+      .where(eq(users.clerkId, clerkUserId))
       .limit(1);
 
     if (userResult.length === 0) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not found',
-      });
+      // User exists in Clerk but not in our DB yet — return minimal info
+      // This allows profile-setup to work
+      (req as AuthenticatedRequest).user = {
+        userId: clerkUserId, // Use clerkId as userId temporarily
+        email: '',
+        role: 'volunteer',
+      };
+      return next();
     }
 
     const user = userResult[0];
@@ -49,9 +62,9 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     }
 
     (req as AuthenticatedRequest).user = {
-      userId: payload.userId,
-      email: payload.email,
-      role: payload.role,
+      userId: user.id,
+      email: user.email,
+      role: user.role,
     };
 
     next();

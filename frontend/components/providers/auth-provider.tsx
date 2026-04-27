@@ -1,22 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { useUser, useClerk } from "@clerk/nextjs";
-import {
-  clearAuthSession,
-  readAuthSession,
-  writeAuthSession,
-  type AppUser,
-  type AuthSession,
-} from "@/lib/auth-storage";
+import { useRouter } from "next/navigation";
+import { useUser, useClerk, useAuth as useClerkAuth } from "@clerk/nextjs";
+import { setTokenGetter, type AppUser, type AppUserRole } from "@/lib/api";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
   isReady: boolean;
   user: AppUser | null;
-  session: AuthSession | null;
-  setSession: (session: AuthSession) => void;
   signOut: () => Promise<void>;
 }
 
@@ -25,43 +17,35 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
   const { signOut: clerkSignOut } = useClerk();
-  const [session, setSessionState] = useState<AuthSession | null>(null);
-  const pathname = usePathname();
+  const { getToken } = useClerkAuth();
   const router = useRouter();
 
+  // Wire Clerk's getToken into our API layer
   useEffect(() => {
-    const storedSession = readAuthSession();
-    setSessionState(storedSession);
-  }, []);
+    setTokenGetter(() => getToken());
+  }, [getToken]);
 
-  // Sync Clerk user with our AppUser structure if needed
   const user = useMemo<AppUser | null>(() => {
-    if (!clerkUser) return session?.user ?? null;
-    
+    if (!clerkUser) return null;
+
     return {
       id: clerkUser.id,
+      clerkId: clerkUser.id,
       name: clerkUser.fullName || clerkUser.username || "User",
+      firstName: clerkUser.firstName ?? undefined,
+      lastName: clerkUser.lastName ?? undefined,
       email: clerkUser.primaryEmailAddress?.emailAddress || "",
-      role: (clerkUser.publicMetadata?.role as any) || "volunteer",
+      role: ((clerkUser.publicMetadata?.role as AppUserRole) || "volunteer"),
+      isActive: true,
     };
-  }, [clerkUser, session]);
-
-  const setSession = (nextSession: AuthSession) => {
-    writeAuthSession(nextSession);
-    setSessionState(nextSession);
-  };
+  }, [clerkUser]);
 
   const signOut = async () => {
     try {
       await clerkSignOut();
-      clearAuthSession();
-      setSessionState(null);
       router.replace("/");
     } catch (error) {
       console.error("Sign out error:", error);
-      // Fallback
-      clearAuthSession();
-      setSessionState(null);
       router.replace("/");
     }
   };
@@ -71,11 +55,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: !!clerkUser,
       isReady: isLoaded,
       user,
-      session,
-      setSession,
       signOut,
     }),
-    [clerkUser, isLoaded, user, session]
+    [clerkUser, isLoaded, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

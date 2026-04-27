@@ -11,8 +11,12 @@ export const envSchema = z.object({
   DB_USER: z.string().optional(),
   DB_PASSWORD: z.string().optional(),
   
-  JWT_SECRET: z.string(),
-  JWT_REFRESH_SECRET: z.string(),
+  // Clerk authentication
+  CLERK_SECRET_KEY: z.string(),
+
+  // Legacy JWT (optional, kept for backward compatibility)
+  JWT_SECRET: z.string().optional(),
+  JWT_REFRESH_SECRET: z.string().optional(),
   JWT_EXPIRY: z.string().default('15m'),
   JWT_REFRESH_EXPIRY: z.string().default('7d'),
   

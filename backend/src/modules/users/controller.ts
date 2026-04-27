@@ -61,3 +61,30 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
     message: 'Profile updated successfully',
   });
 }
+
+export async function getAllUsers(req: AuthenticatedRequest, res: Response) {
+  const users = await userService.getAllUsers();
+  
+  res.json({
+    success: true,
+    data: users,
+  });
+}
+
+export async function getGovtUsers(req: AuthenticatedRequest, res: Response) {
+  const users = await userService.getUsersByRole('govt');
+  
+  res.json({
+    success: true,
+    data: users,
+  });
+}
+
+export async function getNgoUsers(req: AuthenticatedRequest, res: Response) {
+  const users = await userService.getUsersByRole('ngo');
+  
+  res.json({
+    success: true,
+    data: users,
+  });
+}
