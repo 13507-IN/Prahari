@@ -11,19 +11,28 @@ export interface LocationData {
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  clerkId: varchar('clerk_id', { length: 255 }).unique(),
+
+  // Clerk ID should be required
+  clerkId: varchar('clerk_id', { length: 255 }).notNull().unique(),
+
   name: varchar('name', { length: 255 }).notNull(),
   firstName: varchar('first_name', { length: 100 }),
   lastName: varchar('last_name', { length: 100 }),
+
   email: varchar('email', { length: 255 }).notNull().unique(),
-  password: varchar('password', { length: 255 }),
+
   role: userRoleEnum('role').notNull().default('volunteer'),
+
   skills: jsonb('skills').$type<string[]>().default([]),
+
   location: varchar('location', { length: 100 }),
   locationData: jsonb('location_data').$type<LocationData>(),
+
   phone: varchar('phone', { length: 20 }),
   avatarUrl: text('avatar_url'),
+
   isActive: boolean('is_active').notNull().default(true),
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
