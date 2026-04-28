@@ -22,7 +22,7 @@ export function generateAccessToken(user: User): string {
     role: user.role,
   };
 
-  return jwt.sign(payload, config.JWT_SECRET, {
+  return jwt.sign(payload, config.JWT_SECRET!, {
     expiresIn: config.JWT_EXPIRY as jwt.SignOptions['expiresIn'],
   });
 }
@@ -35,7 +35,7 @@ export function generateRefreshToken(user: User, tokenVersion: number = 1): stri
     tokenVersion,
   };
 
-  return jwt.sign(payload, config.JWT_REFRESH_SECRET, {
+  return jwt.sign(payload, config.JWT_REFRESH_SECRET!, {
     expiresIn: config.JWT_REFRESH_EXPIRY as jwt.SignOptions['expiresIn'],
   });
 }
@@ -44,7 +44,7 @@ export function verifyAccessToken(token: string): TokenPayload | null {
   const config = getConfig();
   
   try {
-    return jwt.verify(token, config.JWT_SECRET) as TokenPayload;
+    return jwt.verify(token, config.JWT_SECRET!) as unknown as TokenPayload;
   } catch {
     return null;
   }
@@ -54,7 +54,7 @@ export function verifyRefreshToken(token: string): RefreshPayload | null {
   const config = getConfig();
   
   try {
-    return jwt.verify(token, config.JWT_REFRESH_SECRET) as RefreshPayload;
+    return jwt.verify(token, config.JWT_REFRESH_SECRET!) as unknown as RefreshPayload;
   } catch {
     return null;
   }

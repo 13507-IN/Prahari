@@ -13,12 +13,11 @@ export async function createUser(input: RegisterInput): Promise<User> {
   
   const [user] = await db.insert(users)
     .values({
+      clerkId: `legacy_auth_${Date.now()}`,
       name: input.name,
       email: input.email,
-      password: hashedPassword,
       role: input.role,
       skills: input.skills || [],
-      location: input.location || null,
       phone: input.phone || null,
     })
     .returning();
@@ -40,7 +39,8 @@ export async function authenticateUser(input: LoginInput): Promise<{ user: User;
 
   const user = userResult[0];
   
-  const isValid = await verifyPassword(input.password, user.password);
+  // Password auth is deprecated in favor of Clerk
+  const isValid = await verifyPassword(input.password, 'deprecated');
   if (!isValid) {
     return null;
   }
