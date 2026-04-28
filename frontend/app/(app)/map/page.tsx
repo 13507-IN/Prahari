@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Filter, Layers, Maximize2, MapPin, ChevronUp, ChevronDown, Loader2, AlertCircle } from "lucide-react";
+import { Filter, Layers, ChevronUp, ChevronDown, Loader2, AlertCircle, MapPin } from "lucide-react";
 import { getReports, type Report } from "@/lib/api";
+import DynamicReportsMap from "@/components/map/DynamicReportsMap";
 
 export default function MapViewPage() {
   const [isControlsOpen, setIsControlsOpen] = useState(false);
@@ -197,58 +198,10 @@ export default function MapViewPage() {
 
         {/* Map Area */}
         <div className="flex-1 border-4 border-swiss-fg bg-swiss-muted relative overflow-hidden group shadow-[12px_12px_0_0_rgba(0,0,0,0.05)] md:shadow-[20px_20px_0_0_rgba(0,0,0,0.05)] mb-14 md:mb-0">
-          <div className="absolute inset-0 swiss-grid-pattern opacity-40" />
-          <div className="absolute inset-0 swiss-dots opacity-20" />
-          
-          {/* Render report markers positioned by coordinates */}
-          {reportsWithCoords.map((report) => {
-            // Simple positioning: map lat/lng to percentage
-            // India-centric: lat 8-37, lng 68-97
-            const latMin = 8, latMax = 37, lngMin = 68, lngMax = 97;
-            const top = Math.max(5, Math.min(90, ((latMax - (report.latitude || 20)) / (latMax - latMin)) * 100));
-            const left = Math.max(5, Math.min(90, (((report.longitude || 77) - lngMin) / (lngMax - lngMin)) * 100));
-
-            const isHigh = report.urgency === "high";
-            return (
-              <div
-                key={report.id}
-                className={`absolute cursor-pointer group/marker z-10 ${isHigh ? "animate-pulse" : ""}`}
-                style={{ top: `${top}%`, left: `${left}%` }}
-              >
-                <div className={`w-4 h-4 md:w-6 md:h-6 border-2 md:border-4 ${
-                  isHigh ? "bg-swiss-red border-swiss-fg" : "bg-swiss-fg border-swiss-bg"
-                }`} />
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-swiss-fg text-swiss-bg text-[7px] md:text-[8px] font-black px-2 py-1 whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity z-20">
-                  {report.title}
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Fallback message */}
-          {!isLoading && reportsWithCoords.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center p-8">
-                <MapPin className="w-12 h-12 text-swiss-fg/10 mx-auto mb-4" />
-                <p className="text-[10px] font-black tracking-widest uppercase text-swiss-fg/30">NO GEO-TAGGED REPORTS</p>
-                <p className="text-[8px] font-bold text-swiss-fg/20 mt-1">REPORTS WITH COORDINATES WILL APPEAR AS MARKERS</p>
-              </div>
-            </div>
-          )}
-
-          {/* Map Controls */}
-          <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 flex flex-col gap-2 z-20">
-            <button className="w-10 h-10 md:w-12 md:h-12 bg-swiss-bg border-4 border-swiss-fg flex items-center justify-center hover:bg-swiss-red hover:text-swiss-bg transition-colors">
-              <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-            <div className="flex flex-col border-4 border-swiss-fg overflow-hidden">
-              <button className="w-10 h-10 md:w-12 md:h-12 bg-swiss-bg flex items-center justify-center hover:bg-swiss-muted border-b-2 border-swiss-fg font-black text-lg">+</button>
-              <button className="w-10 h-10 md:w-12 md:h-12 bg-swiss-bg flex items-center justify-center hover:bg-swiss-muted font-black text-lg">-</button>
-            </div>
-          </div>
+          <DynamicReportsMap reports={reportsWithCoords} />
 
           {/* Map Coordinates Overlay */}
-          <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 p-3 md:p-4 bg-swiss-fg text-swiss-bg text-[8px] md:text-[10px] font-black tracking-widest uppercase flex flex-col gap-1 z-20">
+          <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 p-3 md:p-4 bg-swiss-fg/90 backdrop-blur text-swiss-bg text-[8px] md:text-[10px] font-black tracking-widest uppercase flex flex-col gap-1 z-[1000] border-2 border-swiss-bg">
             <span>TOTAL REPORTS: {filteredReports.length}</span>
             <span>GEO-TAGGED: {reportsWithCoords.length}</span>
             <span className="text-swiss-red">HIGH PRIORITY: {filteredReports.filter(r => r.urgency === "high").length}</span>
