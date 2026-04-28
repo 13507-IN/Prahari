@@ -26,9 +26,22 @@ export async function createReport(input: CreateReportInput, userId: string): Pr
 
   // Convert lat,lng to PostGIS POINT
   let locationPoint: any = null;
-  if (input.location) {
-    const [lat, lng] = input.location.split(',').map(Number);
-    locationPoint = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
+  let parsedLat: number | null = input.latitude || null;
+  let parsedLng: number | null = input.longitude || null;
+
+  if (parsedLat !== null && parsedLng !== null) {
+    locationPoint = sql`ST_SetSRID(ST_MakePoint(${parsedLng}, ${parsedLat}), 4326)`;
+  } else if (input.location && input.location.includes(',')) {
+    const parts = input.location.split(',');
+    if (parts.length === 2) {
+      const lat = Number(parts[0]);
+      const lng = Number(parts[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        parsedLat = lat;
+        parsedLng = lng;
+        locationPoint = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
+      }
+    }
   }
   
   const [report] = await db.insert(reports)
@@ -38,6 +51,8 @@ export async function createReport(input: CreateReportInput, userId: string): Pr
       category: input.category || mlAnalysis.category,
       urgency: input.urgency || mlAnalysis.urgency,
       location: locationPoint || input.location,
+      latitude: parsedLat,
+      longitude: parsedLng,
       address: input.address || null,
       images: input.images || [],
       createdBy: userId,
@@ -111,6 +126,8 @@ export async function getReports(filters: ReportFilters): Promise<{ data: Report
     urgency: reports.urgency,
     status: reports.status,
     location: reports.location,
+    latitude: reports.latitude,
+    longitude: reports.longitude,
     address: reports.address,
     images: reports.images,
     createdBy: reports.createdBy,

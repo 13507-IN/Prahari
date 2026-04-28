@@ -6,6 +6,8 @@ export const createReportSchema = z.object({
   category: z.enum(['infrastructure', 'health', 'environment', 'safety', 'education', 'social', 'other']),
   urgency: z.enum(['low', 'medium', 'high']).default('medium'),
   location: z.string(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   address: z.string().optional(),
   images: z.array(z.string().url()).optional(),
 });

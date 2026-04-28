@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from 'express';
-import { createClerkClient } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 import type { AuthenticatedRequest } from '../types/index.js';
 import { getDb } from '../db/index.js';
 import { users } from '../db/schema/index.js';
@@ -25,9 +25,12 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     // Verify Clerk JWT token
     let clerkUserId: string;
     try {
-      const verifiedToken = await clerkClient.verifyToken(token);
+      const verifiedToken = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
       clerkUserId = verifiedToken.sub;
-    } catch {
+    } catch (err) {
+      console.error('Clerk verifyToken error:', err);
       return res.status(401).json({
         success: false,
         error: 'Invalid or expired token',
@@ -41,18 +44,38 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       .where(eq(users.clerkId, clerkUserId))
       .limit(1);
 
+    let user;
     if (userResult.length === 0) {
-      // User exists in Clerk but not in our DB yet — return minimal info
-      // This allows profile-setup to work
-      (req as AuthenticatedRequest).user = {
-        userId: clerkUserId, // Use clerkId as userId temporarily
-        email: '',
-        role: 'volunteer',
-      };
-      return next();
-    }
+      try {
+        // User exists in Clerk but not in our DB yet.
+        // Automatically sync them to the database now.
+        const clerkUser = await clerkClient.users.getUser(clerkUserId);
+        const email = clerkUser.emailAddresses[0]?.emailAddress || '';
+        const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Unknown User';
 
-    const user = userResult[0];
+        const newUserResult = await db.insert(users).values({
+          clerkId: clerkUserId,
+          email,
+          name,
+          firstName: clerkUser.firstName || null,
+          lastName: clerkUser.lastName || null,
+          role: 'volunteer',
+        }).returning();
+        
+        user = newUserResult[0];
+      } catch (syncErr) {
+        console.error('Failed to auto-sync user:', syncErr);
+        // Fallback to allow profile-setup to work if DB insert fails
+        (req as AuthenticatedRequest).user = {
+          userId: clerkUserId,
+          email: '',
+          role: 'volunteer',
+        };
+        return next();
+      }
+    } else {
+      user = userResult[0];
+    }
     
     if (!user.isActive) {
       return res.status(403).json({
