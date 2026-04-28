@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +35,7 @@ const roleOptions = [
 export default function ProfileSetupPage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,7 +77,7 @@ export default function ProfileSetupPage() {
     setIsSubmitting(true);
     try {
       // Get Clerk token
-      const token = await user?.getIdToken();
+      const token = await getToken();
       if (!token) throw new Error("Authentication failed");
 
       // Call backend API to save profile
@@ -110,6 +111,9 @@ export default function ProfileSetupPage() {
         title: "Success!",
         description: "Your profile has been completed. Welcome to CommunitySync!",
       });
+
+      // Reload Clerk user to fetch updated publicMetadata (role)
+      await user?.reload();
 
       // Redirect to dashboard
       router.push("/dashboard");

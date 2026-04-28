@@ -3,12 +3,21 @@ import type { AuthenticatedRequest } from '../../types/index.js';
 import * as userService from './service.js';
 import type { UpdateProfileInput } from './schemas.js';
 import type { ProfileSetupInput } from '../auth/schemas.js';
+import { createClerkClient } from '@clerk/backend';
 
 export async function profileSetup(req: Request, res: Response) {
   try {
     const input = req.body as ProfileSetupInput;
     
     const user = await userService.createOrUpdateClerkUser(input);
+    
+    // Update Clerk public metadata
+    const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+    await clerkClient.users.updateUserMetadata(input.clerkId, {
+      publicMetadata: {
+        role: input.role
+      }
+    });
     
     res.json({
       success: true,
